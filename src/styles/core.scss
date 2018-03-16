@@ -1,0 +1,41 @@
+@import 'base';
+// Some best-practice CSS that's useful for most apps
+// Just remove them if they're not what you want
+
+body {
+  font-family: 'Jeju Gothic', serif !important;
+  overflow: hidden;
+}
+
+html {
+  box-sizing: border-box;
+  overflow-style: none;
+  overflow: hidden;
+}
+
+html,
+body {
+  overflow: -moz-scrollbars-none;
+  -ms-overflow-style: none;
+  text-align: center;
+  user-select: none;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+.core-layout__viewport {
+  height: calc(100vh - 65px);
+}
+
+.container {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
