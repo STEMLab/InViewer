@@ -7,6 +7,7 @@ import project from '../project.config'
 import compress from 'compression'
 import session from 'express-session'
 import bodyParser from 'body-parser'
+import cors from 'cors'
 
 import IGMLAPI from './api/iGml'
 import IJSONAPI from './api/iJson'
@@ -24,6 +25,8 @@ app.use(compress())
 // ------------------------------------
 if (project.env === 'development') {
   const compiler = webpack(webpackConfig)
+
+  app.use(cors());
 
   logger.info('Enabling webpack development and HMR middleware')
   app.use(require('webpack-dev-middleware')(compiler, {

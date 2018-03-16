@@ -33,7 +33,6 @@ export default class IJSONHelper {
         exterior = exterior.concat(vertex)
       }
       this.transformCoordinates(exterior);
-      //var triangulatedSurface = this.triangulate(exterior, []);
       this.cellDirectory[ id ] = exterior;
     }
   }
@@ -57,9 +56,10 @@ export default class IJSONHelper {
       var cellGeoms = this.cellDirectory[key];
 
       var shape = new THREE.Shape()
+
       shape.moveTo(cellGeoms[0], cellGeoms[1])
       for(var i = 1; i < cellGeoms.length / 3; i++) {
-        shape.lineTo ( cellGeoms[i * 3], cellGeoms[i * 3 + 1])
+        shape.lineTo (cellGeoms[i * 3], cellGeoms[i * 3 + 1])
       }
 
       var extrudeSettings = {
@@ -74,7 +74,7 @@ export default class IJSONHelper {
       geometry.computeVertexNormals()
 
       var mesh = new THREE.Mesh( geometry, this.cellMaterial );
-      mesh.position.set( cellGeoms[0], cellGeoms[1], cellGeoms[2] - (cell.geometry.properties.height * this.scale / 2));
+      mesh.position.set( 0, 0, cellGeoms[2] - (cell.geometry.properties.height * this.scale / 2));
 
       cellgroup.add(mesh);
 
@@ -125,68 +125,5 @@ export default class IJSONHelper {
       var nz = Math.abs(vecx[0] * vecy[1] - vecy[0] * vecx[1]);
 
       return [nx, ny, nz];
-  }
-
-  triangulate (vertices, interior) {
-    var partition = [];
-    var newvertices = [];
-    var newinterior = [];
-
-    var vector = this.calVector(vertices);
-
-    var nx = vector[0];
-    var ny = vector[1];
-    var nz = vector[2];
-
-    var max = Math.max(nx, ny, nz);
-
-    if(nz == max){
-        for(var i = 0; i < vertices.length / 3; i++) {
-            newvertices.push(vertices[i * 3]);
-            newvertices.push(vertices[i * 3 + 1]);
-        }
-
-        for(var i = 0; i < interior.length / 3; i++) {
-            newinterior.push(interior[i * 3]);
-            newinterior.push(interior[i * 3 + 1]);
-        }
-    }
-    else if(nx == max){
-        for(var i = 0; i < vertices.length / 3; i++) {
-            newvertices.push(vertices[i * 3 + 1]);
-            newvertices.push(vertices[i * 3 + 2]);
-        }
-        for(var i = 0; i < interior.length / 3; i++) {
-            newinterior.push(interior[i * 3 + 1]);
-            newinterior.push(interior[i * 3 + 2]);
-        }
-    }
-    else {
-        for(var i = 0; i < vertices.length / 3; i++) {
-            newvertices.push(vertices[i * 3]);
-            newvertices.push(vertices[i * 3 + 2]);
-        }
-        for(var i = 0; i < interior.length / 3; i++) {
-            newinterior.push(interior[i * 3]);
-            newinterior.push(interior[i * 3 + 2]);
-        }
-    }
-
-    var interiorStartIndex = (newvertices.length / 2) - 1;
-    var polygonwithhole = newvertices.concat(newinterior);
-
-    var triangle = earcut(polygonwithhole, [interiorStartIndex]);
-
-    var concatVertices = vertices.concat(interior);
-
-
-    for(var i = 0; i < triangle.length; i++) {
-        partition.push(concatVertices[triangle[i] * 3]);
-        partition.push(concatVertices[triangle[i] * 3 + 1]);
-        partition.push(concatVertices[triangle[i] * 3 + 2]);
-    }
-
-    return partition;
-
   }
 }
