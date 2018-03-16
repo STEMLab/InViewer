@@ -30,7 +30,7 @@ export default class CellSpaceBoundary {
       var exterior = geod.abstractSurface
       if (typeof exterior !== 'undefined') {
         var polygon = new Polygon()
-        polygon.fromJSON(exterior.value, parser);
+        polygon.fromJSON(exterior.value, parser)
         this.geometry.push(polygon);
         this.geometryType = "3D"
       }
@@ -46,7 +46,7 @@ export default class CellSpaceBoundary {
       }
       //TODO : interior
     } else {
-      geod = cellSpaceBoundaryGeometry.geometry2D;
+      geod = cellSpaceBoundaryGeometry.geometry2D
       if (typeof geod !== 'undefined') {
         var curve = geod.abstractCurve;
   			if(typeof curve !== 'undefined') {
