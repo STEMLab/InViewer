@@ -7,6 +7,7 @@ import PropTypes from 'prop-types'
 import BaseComponent from 'BaseComponent'
 import './Viewer.Container.scss'
 import ViewerApp from 'Viewer.App'
+import Panel from 'Panel'
 
 export default class ViewerContainer extends BaseComponent {
 
@@ -126,33 +127,7 @@ export default class ViewerContainer extends BaseComponent {
 
     const content = renderExtension
       ? this.state.renderExtension.render(renderOptions)
-      : <div/>
-
-    return (
-      <div className="data-pane">
-        <ReactLoader show={!renderExtension}/>
-        { content }
-      </div>
-    )
-
-  }
-
-  /////////////////////////////////////////////////////////
-  //
-  //
-  /////////////////////////////////////////////////////////
-  renderExtension () {
-
-    const { renderExtension } = this.state
-
-    const renderOptions = {
-      showTitle: true,
-      docked: true
-    }
-
-    const content = renderExtension
-      ? this.state.renderExtension.render(renderOptions)
-      : <div>Sidebar</div>
+      : <div></div>
 
     return (
       <div className="data-pane">
