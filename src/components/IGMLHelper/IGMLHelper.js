@@ -86,26 +86,17 @@ export default class IGMLHelper {
       for(var surface of surfaces) {
         var polygon = surface.exterior;
 
-        var geometry = new THREE.BufferGeometry();
-        var vertices = [];
-        for(var k = 0; k < polygon.length; k += 3) {
-            vertices.push(polygon[k], polygon[k + 1], polygon[k + 2]);
+        var geometry = new THREE.Geometry();
+        for(var k = 0; k < polygon.length; k += 3){
+            geometry.vertices.push(new THREE.Vector3( polygon[k], polygon[k + 1], polygon[k + 2]));
         }
 
-        var polygons = surface.interior;
-        if(polygons.length != 0) {
-            for(var polygon of polygons) {
-              for(var k = 0; k < polygon.length; k += 3) {
-                  vertices.push(polygon[k], polygon[k + 1], polygon[k + 2]);
-              }
-          }
-        }
+        var line = new THREE.Line( geometry, this.lineMaterial  );
+        cellgroup.add(line);
       }
-      geometry.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
-      geometry.computeBoundingSphere();
 
-      var line = new THREE.Line( geometry, this.lineMaterial );
-      cellgroup.add(line);
+      //var line = new THREE.Line( geometry, this.lineMaterial );
+      //cellgroup.add(line);
 
       cellSpaces.add(cellgroup);
       this.allGeometries[key] = cellgroup;
