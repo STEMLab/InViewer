@@ -37,7 +37,7 @@ export default class IJSONHelper {
     }
 
     var cellBoundaries = indoor.CellSpaceBoundary
-    for(const [key, value] of Object.entries(cells)) {
+    for(const [key, value] of Object.entries(cellBoundaries)) {
 
       var cb = value
 
@@ -140,8 +140,8 @@ export default class IJSONHelper {
       this.information[key] = cell;
     }
 
-    var cellBoundaries = indoor.CellSpaceBoundary
-    for(const [key, value] of Object.entries(cells)) {
+    var cbs = indoor.CellSpaceBoundary
+    for(const [key, value] of Object.entries(cbs)) {
       var cb = value
       var height = cb.geometry.properties.height
 
