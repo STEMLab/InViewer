@@ -13,10 +13,11 @@ export default class Viewport {
 
     // grid helper
     var grid = new THREE.GridHelper(50, 10, 0xbbbbbb, 0x888888);
-    grid.visible = true;
+    grid.visible = false;
     this.sceneHelper.add(grid);
 
     var axesHelper = new THREE.AxesHelper( 5 );
+    axesHelper.visible = false;
     this.sceneHelper.add( axesHelper );
 
     var skyboxGeometry = new THREE.CubeGeometry(200, 200, 200);

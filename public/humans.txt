@@ -2,7 +2,9 @@
 
 # TEAM
 
-    <name> -- <role> -- <twitter>
+    Hyung-Gyu Ryoo -- Main Developer, Project Manager -- @hg_ryoo
+    Suhee Jung -- Main Developer -- x
+    
 
 # THANKS
 

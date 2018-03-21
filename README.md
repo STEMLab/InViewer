@@ -6,7 +6,7 @@ A Three.js-based viewer for visualizing OGC IndoorGML data
 
 ## Main Features
 - Visualizing OGC IndoorGML data
-- Interactive Visualizing with [InEditor]
+- Interactive Visualizing IndoorGML with [InEditor]
 
 ## Prerequisites
 

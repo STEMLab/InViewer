@@ -11,7 +11,7 @@ export default class IGMLHelper {
     this.allGeometries = {};
     this.information = {};
 
-    this.cellMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, side: THREE.DoubleSide} );
+    this.cellMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, opacity:0.3, transparent: true, side: THREE.DoubleSide} );
     this.cbMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, side: THREE.DoubleSide} );
     this.lineMaterial = new THREE.LineBasicMaterial( {color: 0x000000} );
   }
@@ -149,8 +149,7 @@ export default class IGMLHelper {
 
     primalSpaceFeatures.add( cellSpaces );
     primalSpaceFeatures.add( cellSpaceBoundary );
-    group.add(primalSpaceFeatures);
-    group.castShadow = true;
+    group.add(primalSpaceFeatures)
 
     return group;
   }

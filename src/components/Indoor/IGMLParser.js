@@ -23,8 +23,6 @@ export default class IGMLParser {
 
     var primalSpace = igmlContent.value.primalSpaceFeatures;
 
-    var layers = igmlContent.value.multiLayeredGraph.multiLayeredGraph.spaceLayers;
-
     if(primalSpace !== 'undefined') {
       var cells = primalSpace.primalSpaceFeatures.cellSpaceMember;
       if (typeof cells !== 'undefined') {
@@ -45,6 +43,8 @@ export default class IGMLParser {
         }
       }
     }
+
+    //var layers = igmlContent.value.multiLayeredGraph.multiLayeredGraph.spaceLayers;
 
     /*
     if(layers !== 'undefined') {
