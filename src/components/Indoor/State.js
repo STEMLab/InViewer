@@ -33,6 +33,7 @@ export default class State {
     if (typeof geometry !== 'undefined') {
       var p = new Point()
       p.fromJSON(geometry.point, parser)
+      this.geometry = p
     }
   }
 }

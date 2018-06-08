@@ -10,13 +10,7 @@ export default class Point {
     this.id = content.id
     var pos = content.pos;
     if (typeof pos !== 'undefined') {
-
-      var values = pos.value;
-      if(typeof values !== 'undefined') {
-        for(var c of values) {
-          this.coordinates.push(c)
-        }
-      }
+        parser.parsePosOrPointPropertyOrPointRep(pos, this.coordinates);
     }
   }
 }

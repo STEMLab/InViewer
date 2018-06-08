@@ -33,6 +33,7 @@ export default class Transition {
     if (typeof geometry !== 'undefined') {
       var l = new LineString()
       l.fromJSON(geometry.abstractCurve.value, parser)
+      this.geometry = l;
     }
   }
 }

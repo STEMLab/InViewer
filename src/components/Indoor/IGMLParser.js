@@ -2,7 +2,10 @@ import * as log from 'loglevel'
 
 import CellSpace from './Cellspace'
 import CellSpaceBoundary from './CellSpaceBoundary'
+
 import SpaceLayer from './SpaceLayer'
+import State from './State'
+import Transition from './Transition'
 
 export default class IGMLParser {
   constructor() {
@@ -46,8 +49,8 @@ export default class IGMLParser {
       }
     }
 
-    var multiLayeredGraph = igmlContent.value.multiLayeredGraph.multiLayeredGraph;
-    var layers = multiLayeredGraph.spaceLayers;
+    var mg = igmlContent.value.multiLayeredGraph.multiLayeredGraph;
+    var layers = mg.spaceLayers;
     if(layers !== 'undefined') {
       for(var layer of layers) {
         var layerMember = layer.spaceLayerMember
@@ -57,13 +60,13 @@ export default class IGMLParser {
 
           var sl = new SpaceLayer();
           sl.fromJSON(spaceLayer, this);
-          multiLayeredGraph.push(sl);
+          this.multiLayeredGraph.push(sl);
         }
       }
     }
   }
 
-  parseNodes(nodesArr) {
+  parseNodes(nodesArr, spaceLayer) {
     if(nodesArr !== undefined) {
       for(var nodes of nodesArr) {
         var stateMembers = nodes.stateMember;
@@ -71,13 +74,14 @@ export default class IGMLParser {
           for(var stateMember of stateMembers) {
             var newState = new State();
             newState.fromJSON(stateMember.state, this)
+            spaceLayer.nodes.push(newState)
           }
         }
       }
     }
   }
 
-  parseEdges(edgeArr) {
+  parseEdges(edgeArr, spaceLayer) {
     if(edgeArr !== undefined) {
       for(var edges of edgeArr) {
         var transitionMembers = edges.transitionMember;
@@ -85,6 +89,7 @@ export default class IGMLParser {
           for(var transitionMember of transitionMembers) {
             var newTransition = new Transition();
             newTransition.fromJSON(transitionMember.transition, this)
+            spaceLayer.edges.push(newTransition)
           }
         }
       }
@@ -92,20 +97,30 @@ export default class IGMLParser {
   }
 
   parsePosOrPointPropertyOrPointRep(points, target) {
-    for (var i = 0; i < points.length; i++) {
-      var point = [points[i].value.value[0], points[i].value.value[2], -points[i].value.value[1]];
+    if(points.value !== undefined) {
+      var point = [points.value[0], points.value[2], -points.value[1]];
       target.push(point[0], point[1], point[2]);
-      if (this.floorflag == 0) {
-        this.floorflag = 1;
-        this.minmax = [point[0], point[1], point[2], point[0], point[1], point[2]];
-      } else {
-        this.minmax[0] = Math.max(this.minmax[0], point[0]);
-        this.minmax[1] = Math.max(this.minmax[1], point[1]);
-        this.minmax[2] = Math.max(this.minmax[2], point[2]);
-        this.minmax[3] = Math.min(this.minmax[3], point[0]);
-        this.minmax[4] = Math.min(this.minmax[4], point[1]);
-        this.minmax[5] = Math.min(this.minmax[5], point[2]);
+      this.setMinMax(point)
+    } else {
+      for (var i = 0; i < points.length; i++) {
+        var point = [points[i].value.value[0], points[i].value.value[2], -points[i].value.value[1]];
+        target.push(point[0], point[1], point[2]);
+        this.setMinMax(point)
       }
+    }
+  }
+
+  setMinMax(point) {
+    if (this.floorflag == 0) {
+      this.floorflag = 1;
+      this.minmax = [point[0], point[1], point[2], point[0], point[1], point[2]];
+    } else {
+      this.minmax[0] = Math.max(this.minmax[0], point[0]);
+      this.minmax[1] = Math.max(this.minmax[1], point[1]);
+      this.minmax[2] = Math.max(this.minmax[2], point[2]);
+      this.minmax[3] = Math.min(this.minmax[3], point[0]);
+      this.minmax[4] = Math.min(this.minmax[4], point[1]);
+      this.minmax[5] = Math.min(this.minmax[5], point[2]);
     }
   }
 }
