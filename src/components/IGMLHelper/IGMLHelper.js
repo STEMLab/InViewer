@@ -8,34 +8,40 @@ export default class IGMLHelper {
 
     this.cellDirectory = {};
     this.cellBoundaryDirectory = {};
+    this.stateDirectory = {};
+    this.transitionDirectory = {};
     this.allGeometries = {};
     this.information = {};
 
     this.cellMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, opacity:0.3, transparent: true, side: THREE.DoubleSide} );
     this.cbMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, side: THREE.DoubleSide} );
+    this.stateMaterial = new THREE.MeshLambertMaterial( {color: 0x0000ff} );
+    this.transitionMaterial = new THREE.LineBasicMaterial( {color: 0x0000ff} );
     this.lineMaterial = new THREE.LineBasicMaterial( {color: 0x000000} );
   }
 
-  makeGeometry (indoor) {
-    this.calCenter(indoor.minmax);
+  parseCellSpaceGeometry(indoor) {
+    if(indoor.cells) {
+      var cells = indoor.cells
+      for(var cell of cells) {
+        var cellGeometry = []
 
-    // Cells
-    var cells = indoor.cells;
-    for(var cell of cells) {
-      var cellGeom = [];
+        var surfaces = cell.geometry
+        if(surfaces !== undefined) {
+          for(var surface of surfaces) {
+            this.transformCoordinates(surface.exterior);
+            this.transformCoordinates(surface.interior);
 
-      var surfaces = cell.geometry;
-      for(var surface of surfaces) {
-        this.transformCoordinates(surface.exterior);
-        this.transformCoordinates(surface.interior);
-
-        var triangulatedSurface = this.triangulate(surface.exterior, surface.interior);
-        cellGeom = cellGeom.concat(triangulatedSurface);
+            var triangulatedSurface = this.triangulate(surface.exterior, surface.interior);
+            cellGeometry = cellGeometry.concat(triangulatedSurface);
+          }
+        }
+        this.cellDirectory[ cell.id ] = cellGeometry;
       }
-      this.cellDirectory[ cell.id ] = cellGeom;
     }
+  }
 
-    // Cell Boundaries
+  parseCellSpaceBoundaryGeometry(indoor) {
     var cellBoundaries = indoor.cellBoundaries
     for(var cbs of cellBoundaries) {
       var geometry
@@ -48,9 +54,35 @@ export default class IGMLHelper {
       }
       this.cellBoundaryDirectory[ cbs.id ] = geometry
     }
+  }
 
+  parseSpaceLayerGeometry(indoor) {
+    if(typeof indoor.multiLayeredGraph !== 'undefined') {
+      var multiLayeredGraph = indoor.multiLayeredGraph
+      for(var sl of multiLayeredGraph) {
+        var nodes = sl.nodes
+        for(var state of nodes) {
+          this.transformCoordinates(state.geometry.coordinates)
+          this.stateDirectory[state.id] = state.geometry.coordinates
+        }
+
+        var edges = sl.edges;
+        for(var transition of edges) {
+          this.transformCoordinates(transition.geometry.points)
+          this.transitionDirectory[transition.id] = transition.geometry.points
+        }
+      }
+    }
+  }
+
+  makeGeometry (indoor) {
+    this.calCenter(indoor.minmax)
+
+    this.parseCellSpaceGeometry(indoor)
+    this.parseCellSpaceBoundaryGeometry(indoor)
 
     // MultiLayeredGraph
+    this.parseSpaceLayerGeometry(indoor)
   }
 
   createObject (indoor) {
@@ -64,6 +96,7 @@ export default class IGMLHelper {
     cellSpaces.name = 'CellSpace';
 
     var cells = indoor.cells;
+
     for(var cell of cells) {
       var key = cell.id;
 
@@ -138,9 +171,50 @@ export default class IGMLHelper {
       cellSpaceBoundary.add( cbGroup )
     }
 
+    var sps = indoor.multiLayeredGraph
+    var multiLayeredGraph = new THREE.Group();
+    for(var sp of sps) {
+
+      var key = sp.id
+      var spGroup = new THREE.Group();
+      spGroup.name = key;
+
+      var ns = sp.nodes;
+      for(var n of ns) {
+        var box = new THREE.BoxBufferGeometry(0.03, 0.03, 0.03)
+        box.center()
+        var coordinate = this.stateDirectory[n.id]
+        var mesh = new THREE.Mesh( box, this.stateMaterial )
+        mesh.position.set(coordinate[0], coordinate[1], coordinate[2])
+        spGroup.add(mesh)
+      }
+
+      var es = sp.edges
+      for(var e of es) {
+        var lineGeom = this.transitionDirectory[e.id]
+
+        var geometry = new THREE.BufferGeometry();
+        var vertices = new Float32Array( lineGeom );
+        geometry.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
+
+        var line = new THREE.Line( geometry, this.transitionMaterial );
+        spGroup.add(line)
+      }
+
+      //spGroup.rotateX(-(Math.PI / 2))
+      multiLayeredGraph.add(spGroup)
+    }
+
     primalSpaceFeatures.add( cellSpaces );
     primalSpaceFeatures.add( cellSpaceBoundary );
     group.add(primalSpaceFeatures)
+    group.add(multiLayeredGraph)
+
+    var mS = (new THREE.Matrix4()).identity();
+    mS.elements[0] = -1;
+    //mS.elements[5] = -1;
+    mS.elements[8] = -1;
+    group.applyMatrix(mS);
 
     return group;
   }
