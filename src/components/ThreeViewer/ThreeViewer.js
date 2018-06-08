@@ -18,7 +18,6 @@ export default class ThreeViewer {
     this.scene = new THREE.Scene()
     this.scene.name = 'Main Scene'
 
-    // scene helper for 
     this.sceneHelper = new THREE.Scene()
     this.sceneHelper.name = 'Scene Helpers'
 
