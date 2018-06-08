@@ -11,9 +11,45 @@ export default class IGMLHelper {
     this.allGeometries = {};
     this.information = {};
 
-    this.cellMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, opacity:0.3, transparent: true, side: THREE.DoubleSide} );
+    this.cellMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, opacity:1, transparent: true, side: THREE.DoubleSide} );
     this.cbMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, side: THREE.DoubleSide} );
     this.lineMaterial = new THREE.LineBasicMaterial( {color: 0x000000} );
+  }
+
+  parseCellSpace(indoor) {
+    if(indoor.cells) {
+      var cells = indoor.cells
+      for(var cell of cells) {
+        var cellGeometry = []
+
+        var surfaces = cell.geometry
+        if(surfaces !== undefined) {
+          for(var surface of surfaces) {
+
+          }
+        }
+
+      }
+    }
+  }
+
+  parseCellSpaceBoundary(indoor) {
+    if(indoor.cellBoundaries) {
+      for(var cbs of cellBoundaries) {
+        var geometry
+        if(cbs.geometryType === "3D") {
+
+        } else {
+
+        }
+      }
+    }
+  }
+
+  parseSpaceLayer(indoor) {
+    if(indoor.multiLayeredGraph) {
+
+    }
   }
 
   makeGeometry (indoor) {
@@ -64,6 +100,7 @@ export default class IGMLHelper {
     cellSpaces.name = 'CellSpace';
 
     var cells = indoor.cells;
+
     for(var cell of cells) {
       var key = cell.id;
 
@@ -141,6 +178,12 @@ export default class IGMLHelper {
     primalSpaceFeatures.add( cellSpaces );
     primalSpaceFeatures.add( cellSpaceBoundary );
     group.add(primalSpaceFeatures)
+
+    var mS = (new THREE.Matrix4()).identity();
+    mS.elements[0] = -1;
+    //mS.elements[5] = -1;
+    mS.elements[8] = -1;
+    group.applyMatrix(mS);
 
     return group;
   }
