@@ -2,6 +2,7 @@ import * as log from 'loglevel'
 
 import CellSpace from './Cellspace'
 import CellSpaceBoundary from './CellSpaceBoundary'
+import SpaceLayer from './SpaceLayer'
 
 export default class IGMLParser {
   constructor() {
@@ -19,45 +20,75 @@ export default class IGMLParser {
   }
 
   parse(igmlContent) {
-    //log.trace(igmlContent);
+    if(igmlContent == 'undefined') {
+      log.debug("target IndoorGML is empty")
+      return
+    }
 
-    var primalSpace = igmlContent.value.primalSpaceFeatures;
-
+    var primalSpace = igmlContent.value.primalSpaceFeatures
     if(primalSpace !== 'undefined') {
-      var cells = primalSpace.primalSpaceFeatures.cellSpaceMember;
+      var cells = primalSpace.primalSpaceFeatures.cellSpaceMember
       if (typeof cells !== 'undefined') {
         for(var cell of cells) {
-          var c = new CellSpace();
-          c.fromJSON(cell.cellSpace, this);
-          this.cells.push(c);
+          var c = new CellSpace()
+          c.fromJSON(cell.cellSpace, this)
+          this.cells.push(c)
         }
       }
 
-      var cellboundarys = primalSpace.primalSpaceFeatures.cellSpaceBoundaryMember;
-      // var cellboundarys = primalspace.primalSpaceFeatures.cellSpaceBoundaryMember;
+      var cellboundarys = primalSpace.primalSpaceFeatures.cellSpaceBoundaryMember
       if (typeof cellboundarys !== 'undefined') {
         for(var cellboundary of cellboundarys) {
-          var cb = new CellSpaceBoundary();
-          cb.fromJSON(cellboundary.cellSpaceBoundary, this);
-          this.cellBoundaries.push(cb);
+          var cb = new CellSpaceBoundary()
+          cb.fromJSON(cellboundary.cellSpaceBoundary, this)
+          this.cellBoundaries.push(cb)
         }
       }
     }
 
-    //var layers = igmlContent.value.multiLayeredGraph.multiLayeredGraph.spaceLayers;
-
-    /*
+    var multiLayeredGraph = igmlContent.value.multiLayeredGraph.multiLayeredGraph;
+    var layers = multiLayeredGraph.spaceLayers;
     if(layers !== 'undefined') {
       for(var layer of layers) {
-        var layerMember = layer.spaceLayerMember;
-        for(var graph of layerMember) {
-          var g = new Graph();
-          g.fromJSON(graph, this);
-          this.multiLayeredGraph.push(g);
+        var layerMember = layer.spaceLayerMember
+        for(var member of layerMember) {
+          var spaceLayer = member.spaceLayer
+          var spaceLayerId = spaceLayer.id
+
+          var sl = new SpaceLayer();
+          sl.fromJSON(spaceLayer, this);
+          multiLayeredGraph.push(sl);
         }
       }
     }
-    */
+  }
+
+  parseNodes(nodesArr) {
+    if(nodesArr !== undefined) {
+      for(var nodes of nodesArr) {
+        var stateMembers = nodes.stateMember;
+        if(stateMembers !== undefined) {
+          for(var stateMember of stateMembers) {
+            var newState = new State();
+            newState.fromJSON(stateMember.state, this)
+          }
+        }
+      }
+    }
+  }
+
+  parseEdges(edgeArr) {
+    if(edgeArr !== undefined) {
+      for(var edges of edgeArr) {
+        var transitionMembers = edges.transitionMember;
+        if(transitionMembers !== undefined) {
+          for(var transitionMember of transitionMembers) {
+            var newTransition = new Transition();
+            newTransition.fromJSON(transitionMember.transition, this)
+          }
+        }
+      }
+    }
   }
 
   parsePosOrPointPropertyOrPointRep(points, target) {
@@ -77,5 +108,4 @@ export default class IGMLParser {
       }
     }
   }
-
 }
