@@ -8,11 +8,15 @@ export default class IJSONHelper {
 
     this.cellDirectory = {};
     this.cellBoundaryDirectory = {};
+    this.stateDirectory = {};
+    this.transitionDirectory = {};
     this.allGeometries = {};
     this.information = {};
 
     this.cellMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, opacity:0.3, transparent: true, side: THREE.DoubleSide} );
     this.cbMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, side: THREE.DoubleSide} );
+    this.stateMaterial = new THREE.MeshLambertMaterial( {color: 0x0000ff} );
+    this.transitionMaterial = new THREE.LineBasicMaterial( {color: 0x0000ff} );
     this.lineMaterial = new THREE.LineBasicMaterial( {color: 0x000000} );
   }
 
@@ -52,6 +56,34 @@ export default class IJSONHelper {
       this.transformCoordinates(points);
       this.cellBoundaryDirectory[ id ] = points;
     }
+
+    var states = indoor.State
+    for(const [key, value] of Object.entries(states)) {
+      var s = value
+
+      var id = key
+      var coords = s.geometry.coordinates
+
+      this.transformCoordinates(coords);
+      this.stateDirectory[ id ] = coords;
+    }
+
+    var transitions = indoor.Transition
+    for(const [key, value] of Object.entries(transitions)) {
+      var t = value
+
+      var id = key
+      var line = t.geometry.coordinates
+
+      var points = []
+      for(var vertex of line) {
+        points = points.concat(vertex)
+      }
+
+      this.transformCoordinates(points);
+      this.transitionDirectory[ id ] = points;
+    }
+
     console.log(cellBoundaries)
   }
 
@@ -184,6 +216,30 @@ export default class IJSONHelper {
       this.allGeometries[key] = cbgroup;
       this.information[key] = cb;
     }
+
+    var states = indoor.State;
+    var sgroup = new THREE.Group();
+    for(const [key, value] of Object.entries(states)) {
+      var box = new THREE.BoxBufferGeometry(0.03, 0.03, 0.03)
+      box.center()
+      var sGeoms = this.stateDirectory[key];
+      var mesh = new THREE.Mesh( box, this.stateMaterial )
+      mesh.position.set(sGeoms[0], sGeoms[1], sGeoms[2])
+      sgroup.add(mesh)
+    }
+
+    var transitions = indoor.Transition;
+    for(const [key, value] of Object.entries(transitions)) {
+      var lineGeom = this.transitionDirectory[key]
+
+      var geometry = new THREE.BufferGeometry();
+      var vertices = new Float32Array( lineGeom );
+      geometry.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
+
+      var line = new THREE.Line( geometry, this.transitionMaterial );
+      sgroup.add(line)
+    }
+    group.add(sgroup)
 
     primalSpaceFeatures.add( cellSpaces );
     primalSpaceFeatures.add( cellBoundaries );
