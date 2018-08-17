@@ -210,16 +210,18 @@ export default class IGMLHelper {
     group.add(primalSpaceFeatures)
     group.add(multiLayeredGraph)
 
+	
     var mS = (new THREE.Matrix4()).identity();
     mS.elements[0] = -1;
     //mS.elements[5] = -1;
     mS.elements[8] = -1;
-   
 	group.applyMatrix(mS);
 	
 	var yM  = (new THREE.Matrix4()).identity();
     yM.makeScale(-1, 1, 1);
     group.applyMatrix(yM);
+	
+	group.rotateX(Math.PI);
 	
 	console.log(yM);
     return group;
