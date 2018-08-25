@@ -48,19 +48,21 @@ export default class IGMLParser {
         }
       }
     }
-
-    var mg = igmlContent.value.multiLayeredGraph.multiLayeredGraph;
-    var layers = mg.spaceLayers;
-    if(layers !== 'undefined') {
-      for(var layer of layers) {
-        var layerMember = layer.spaceLayerMember
-        for(var member of layerMember) {
-          var spaceLayer = member.spaceLayer
-          var spaceLayerId = spaceLayer.id
-
-          var sl = new SpaceLayer();
-          sl.fromJSON(spaceLayer, this);
-          this.multiLayeredGraph.push(sl);
+    var multiLayeredGraph = igmlContent.value.multiLayeredGraph
+    if (multiLayeredGraph !== undefined){
+      var mg = igmlContent.value.multiLayeredGraph.multiLayeredGraph;
+      var layers = mg.spaceLayers;
+      if(layers !== 'undefined') {
+        for(var layer of layers) {
+          var layerMember = layer.spaceLayerMember
+          for(var member of layerMember) {
+            var spaceLayer = member.spaceLayer
+            var spaceLayerId = spaceLayer.id
+  
+            var sl = new SpaceLayer();
+            sl.fromJSON(spaceLayer, this);
+            this.multiLayeredGraph.push(sl);
+          }
         }
       }
     }
