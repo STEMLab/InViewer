@@ -31,12 +31,24 @@ export default class CellSpace {
 
     var geod = cellGeometry.geometry3D;
     if (typeof geod !== 'undefined') {
-      var surfaces = geod.abstractSolid.value.exterior.shell.surfaceMember;
-      for (var surface of surfaces) {
+      
+	  var exteriorSurfaces = geod.abstractSolid.value.exterior.shell.surfaceMember;
+      for (var surface of exteriorSurfaces) {
         var polygon = new Polygon();
         polygon.fromJSON(surface.abstractSurface.value, parser);
         this.geometry.push(polygon);
       }
+	  
+	  if( geod.abstractSolid.value.interior != undefined){
+		var interiorSolids = geod.abstractSolid.value.interior;
+		  for( var interiorSolid of interiorSolids ){
+			for (var surface of interiorSolid.shell.surfaceMember) {
+			  var polygon = new Polygon();
+			  polygon.fromJSON(surface.abstractSurface.value, parser);
+			  this.geometry.push(polygon);
+			}	
+		  }
+	  }
     } else {
       geod = cellGeometry.geometry2D;
       if (typeof geod !== 'undefined') {

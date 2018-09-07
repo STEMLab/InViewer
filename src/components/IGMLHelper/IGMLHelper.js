@@ -21,6 +21,7 @@ export default class IGMLHelper {
   }
 
   parseCellSpaceGeometry(indoor) {
+	  console.log('hi');
     if(indoor.cells) {
       var cells = indoor.cells
       for(var cell of cells) {
@@ -181,8 +182,9 @@ export default class IGMLHelper {
 
       var ns = sp.nodes;
       for(var n of ns) {
-        var box = new THREE.BoxBufferGeometry(0.03, 0.03, 0.03)
-        box.center()
+        //var box = new THREE.BoxBufferGeometry(0.03, 0.03, 0.03)
+        var box = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2)
+		box.center()
         var coordinate = this.stateDirectory[n.id]
         var mesh = new THREE.Mesh( box, this.stateMaterial )
         mesh.position.set(coordinate[0], coordinate[1], coordinate[2])
@@ -218,12 +220,12 @@ export default class IGMLHelper {
 	group.applyMatrix(mS);
 	
 	var yM  = (new THREE.Matrix4()).identity();
-    yM.makeScale(-1, 1, 1);
+    yM.makeScale(1, -1, 1);
     group.applyMatrix(yM);
 	
 	group.rotateX(Math.PI);
+	group.rotateY(Math.PI);
 	
-	console.log(yM);
     return group;
   }
 

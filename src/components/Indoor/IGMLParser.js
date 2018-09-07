@@ -23,15 +23,15 @@ export default class IGMLParser {
   }
 
   parse(igmlContent) {
-    if(igmlContent == 'undefined') {
+    if(igmlContent == undefined) {
       log.debug("target IndoorGML is empty")
       return
     }
 
     var primalSpace = igmlContent.value.primalSpaceFeatures
-    if(primalSpace !== 'undefined') {
+    if(primalSpace !== undefined) {
       var cells = primalSpace.primalSpaceFeatures.cellSpaceMember
-      if (typeof cells !== 'undefined') {
+      if (cells !== undefined) {
         for(var cell of cells) {
           var c = new CellSpace()
           c.fromJSON(cell.cellSpace, this)
@@ -40,7 +40,7 @@ export default class IGMLParser {
       }
 
       var cellboundarys = primalSpace.primalSpaceFeatures.cellSpaceBoundaryMember
-      if (typeof cellboundarys !== 'undefined') {
+      if (cellboundarys !== undefined) {
         for(var cellboundary of cellboundarys) {
           var cb = new CellSpaceBoundary()
           cb.fromJSON(cellboundary.cellSpaceBoundary, this)
@@ -49,21 +49,23 @@ export default class IGMLParser {
       }
     }
 
-    var mg = igmlContent.value.multiLayeredGraph.multiLayeredGraph;
-    var layers = mg.spaceLayers;
-    if(layers !== 'undefined') {
-      for(var layer of layers) {
-        var layerMember = layer.spaceLayerMember
-        for(var member of layerMember) {
-          var spaceLayer = member.spaceLayer
-          var spaceLayerId = spaceLayer.id
+	if( igmlContent.value.multiLayeredGraph !== undefined){
+		var mg = igmlContent.value.multiLayeredGraph.multiLayeredGraph;
+		var layers = mg.spaceLayers;
+		if( typeof layers !== 'undefined') {
+		  for(var layer of layers) {
+			var layerMember = layer.spaceLayerMember
+			for(var member of layerMember) {
+			  var spaceLayer = member.spaceLayer
+			  var spaceLayerId = spaceLayer.id
 
-          var sl = new SpaceLayer();
-          sl.fromJSON(spaceLayer, this);
-          this.multiLayeredGraph.push(sl);
-        }
-      }
-    }
+			  var sl = new SpaceLayer();
+			  sl.fromJSON(spaceLayer, this);
+			  this.multiLayeredGraph.push(sl);
+			}
+		  }
+		}
+	}
   }
 
   parseNodes(nodesArr, spaceLayer) {

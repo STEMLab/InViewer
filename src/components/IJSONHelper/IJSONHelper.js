@@ -8,7 +8,7 @@ export default class IJSONHelper {
 
     this.cellDirectory = {};
     this.cellBoundaryDirectory = {};
-    this.stateDirectory = {};
+	this.stateDirectory = {};
     this.transitionDirectory = {};
     this.allGeometries = {};
     this.information = {};
@@ -19,75 +19,227 @@ export default class IJSONHelper {
     this.transitionMaterial = new THREE.LineBasicMaterial( {color: 0x0000ff} );
     this.lineMaterial = new THREE.LineBasicMaterial( {color: 0x000000} );
   }
+  
+  parseCellSpaceGeometry(indoor) {
+    if(indoor.CellSpace) {
+      var cells = indoor.CellSpace
+      for(const [key, value] of Object.entries(cells)) {
+		var cell = value
+		var id = key
+		
+        var cellGeometry = []
+
+        var solids = cell.geometry.coordinates
+        for(var solid of solids) {			
+			
+			for(var surfaces of solid){
+				var vertexs = []
+				
+				for(var i = 0; i < surfaces[0][0].length; i++){
+					for(var j = 0; j < surfaces[0][0][i].length; j++){
+						vertexs = vertexs.concat(surfaces[0][0][i][j])
+					}
+				}	
+				
+				this.transformCoordinates(vertexs);
+
+				var triangulatedSurface = this.triangulate(vertexs, []);
+				cellGeometry = cellGeometry.concat(triangulatedSurface);
+			}
+        }
+        this.cellDirectory[ id ] = cellGeometry;
+      }
+    }
+  }
+  
+  parseCellSpaceBoundaryGeometry(indoor) {
+    var cellBoundaries = indoor.CellSpaceBoundary
+	
+	if(cellBoundaries != undefined){
+		for(const [key, value] of Object.entries(cellBoundaries)) {
+
+		  var cb = value
+		  var id = key
+		  var cbGeometry = []
+		  
+		  var surfaces = cb.geometry.coordinates
+		  for(var surface of surfaces){
+			  
+			var polygon = []
+			for(var point of surface){
+				polygon = polygon.concat(point)
+			}
+			
+			this.transformCoordinates(polygon)
+			
+			var triangulatedSurface = this.triangulate(polygon, []);
+			cbGeometry = cbGeometry.concat(triangulatedSurface);
+			
+		  }
+		  
+		  this.cellBoundaryDirectory[ id ] = cbGeometry;
+		  
+		}
+	}
+	
+  }
+  
+  parseStateGeometry(indoor) {
+     
+	for(const [key, value] of Object.entries(indoor.State)) {
+	
+		this.transformCoordinates(value.geometry.coordinates[0])
+        this.stateDirectory[key] = value.geometry.coordinates[0]
+    }
+    
+  }
+  
+  parseTransitionGeometry(indoor) {
+     
+	for(const [key, value] of Object.entries(indoor.Transition)) {
+	
+		var transition = value;
+		var line = [];
+		for(var point of transition.geometry.coordinates){
+			this.transformCoordinates(point)
+			line = line.concat(point)
+		}
+		
+        this.transitionDirectory[key] = line
+    }
+    
+  }
 
   makeGeometry (indoor) {
     this.calCenter(indoor.bbox);
+	
+	if(indoor.CellSpace != undefined) this.parseCellSpaceGeometry(indoor)
+    if(indoor.CellSpaceBoundary != undefined) this.parseCellSpaceBoundaryGeometry(indoor)
+    if(indoor.State != undefined) this.parseStateGeometry(indoor)
+	if(indoor.Transition != undefined) this.parseTransitionGeometry(indoor)
 
-    // Cells
-    var cells = indoor.CellSpace
-    for(const [key, value] of Object.entries(cells)) {
+  }
+  
+  createCellObject (cell, key){
+	 
+      var cellgroup = new THREE.Group();
+      cellgroup.name = key;
+      var cellGeoms = this.cellDirectory[key];
 
-      var cell = value
+      var geometry = new THREE.BufferGeometry();
+      var vertices = new Float32Array( cellGeoms );
+      geometry.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
+      geometry.computeBoundingSphere()
+      geometry.computeFaceNormals()
+      geometry.computeVertexNormals()
 
-      var id = key
-      var surface = cell.geometry.coordinates
+      var mesh = new THREE.Mesh( geometry, this.cellMaterial );
+      cellgroup.add(mesh);
 
-      var exterior = []
-      for(var vertex of surface) {
-        exterior = exterior.concat(vertex)
-      }
-      this.transformCoordinates(exterior);
-      this.cellDirectory[ id ] = exterior;
-    }
-
-    var cellBoundaries = indoor.CellSpaceBoundary
-    for(const [key, value] of Object.entries(cellBoundaries)) {
-
+      // creating surface geometries 
+	  var solids = cell.geometry.coordinates
+		
+		var solids = cell.geometry.coordinates
+        for(var solid of solids) {			
+			
+			for(var surfaces of solid){
+				var polygon = []
+				
+				for(var i = 0; i < surfaces[0][0].length; i++){
+					for(var j = 0; j < surfaces[0][0][i].length; j++){
+						polygon = polygon.concat(surfaces[0][0][i][j])
+					}
+				}
+				
+				this.transformCoordinates(polygon);
+				
+				var geometry = new THREE.Geometry();
+				for(var k = 0; k < polygon.length; k += 3){
+					geometry.vertices.push(new THREE.Vector3( polygon[k], polygon[k + 1], polygon[k + 2]));
+				}
+				
+				var line = new THREE.Line( geometry, this.lineMaterial  );
+				cellgroup.add(line);
+			}
+        }
+	
+	return cellgroup;
+  }
+  
+  createCellSpaceBoundaryObject (indoor) {
+	  
+	var cbs = indoor.CellSpaceBoundary;
+    for(const [key, value] of Object.entries(cbs)) {
       var cb = value
 
-      var id = key
-      var line = cb.geometry.coordinates
+      var cbGroup = new THREE.Group();
+      cbGroup.name = key;
+      var cbGeom = this.cellBoundaryDirectory[key];
 
-      var points = []
-      for(var vertex of line) {
-        points = points.concat(vertex)
+      var geometry = new THREE.BufferGeometry();
+
+      var polygon = cbGeom
+      var vertices = []
+	  
+      for(var k = 0; k < polygon.length; k += 3) {
+          vertices.push(polygon[k], polygon[k + 1], polygon[k + 2])
       }
 
-      this.transformCoordinates(points);
-      this.cellBoundaryDirectory[ id ] = points;
+      geometry.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
+      geometry.computeBoundingSphere()
+      var mesh = new THREE.Mesh( geometry, this.cbMaterial )
+      cbGroup.add(mesh);
+      
     }
-
-    var states = indoor.State
-    for(const [key, value] of Object.entries(states)) {
-      var s = value
-
-      var id = key
-      var coords = s.geometry.coordinates
-
-      this.transformCoordinates(coords);
-      this.stateDirectory[ id ] = coords;
-    }
-
-    var transitions = indoor.Transition
-    for(const [key, value] of Object.entries(transitions)) {
-      var t = value
-
-      var id = key
-      var line = t.geometry.coordinates
-
-      var points = []
-      for(var vertex of line) {
-        points = points.concat(vertex)
-      }
-
-      this.transformCoordinates(points);
-      this.transitionDirectory[ id ] = points;
-    }
-
-    console.log(cellBoundaries)
+	
+	return cbGroup;
+	  
+  }
+  
+  createStateObject (indoor) {
+	  
+	  var states = indoor.State;
+	  var sGroup = new THREE.Group();
+	  sGroup.name = 'sGroup';
+	  
+	  for(const [key, value] of Object.entries(states)) {
+		
+		var box = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2)
+		box.center()
+		var coordinate = this.stateDirectory[key]
+		var mesh = new THREE.Mesh( box, this.stateMaterial )
+        mesh.position.set(coordinate[0], coordinate[1], coordinate[2])
+        sGroup.add(mesh)
+		
+	}
+	
+	return sGroup;
+	  
+  }
+  
+  createTransitionObject (indoor) {
+	  
+	  var transitions = indoor.Transition;
+	  var tGroup = new THREE.Group();
+	  tGroup.name = 'tGroup';
+	  
+	  for(const [key, value] of Object.entries(transitions)) {
+		
+		var lineGeom = this.transitionDirectory[key]
+		var geometry = new THREE.BufferGeometry();
+        var vertices = new Float32Array( lineGeom );
+        geometry.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
+		
+		var line = new THREE.Line( geometry, this.transitionMaterial );
+        tGroup.add(line)
+	}
+	
+	return tGroup;
+	  
   }
 
   createObject (indoor) {
+	  console.log('IJSONHelper.createObject');
     var group = new THREE.Group();
     group.name = 'IndoorFeatures';
 
@@ -96,156 +248,40 @@ export default class IJSONHelper {
 
     var cellSpaces = new THREE.Group();
     cellSpaces.name = 'CellSpace';
-
+	if(indoor.CellSpace != undefined){
+		var cells = indoor.CellSpace;
+		for(const [key, value] of Object.entries(cells)) {
+			var cellgroup = this.createCellObject(value, key);
+			cellSpaces.add(cellgroup);
+			this.allGeometries[key] = cellgroup;
+			this.information[key] = value;
+		}
+	}
+	
     var cellBoundaries = new THREE.Group();
-    cellBoundaries.name = 'CellBoundary';
+    cellBoundaries.name = 'CellSpaceBoundary';
+	if(indoor.CellSpaceBoundary != undefined) cellBoundaries.add( this.createCellSpaceBoundaryObject(indoor) )
+	
 
-    var cells = indoor.CellSpace;
-    for(const [key, value] of Object.entries(cells)) {
-      var cell = value
-      var height = cell.geometry.properties.height
+	var multiLayeredGraph = new THREE.Group();
+	
+	if(indoor.State != undefined) multiLayeredGraph.add( this.createStateObject(indoor) )	
+	if(indoor.Transition != undefined) multiLayeredGraph.add( this.createTransitionObject(indoor) )
 
-      var cellgroup = new THREE.Group();
-      cellgroup.name = key;
-      var cellGeoms = this.cellDirectory[key];
-
-      var zBottom = cellGeoms[2]
-      var zTop = cellGeoms[2] + (height * this.scale)
-
-      var bottom = []
-      var top = []
-      for(var i = 0; i < cellGeoms.length / 3; i++) {
-        bottom.push (cellGeoms[i * 3], cellGeoms[i * 3 + 1], zBottom)
-        top.push(cellGeoms[i * 3], cellGeoms[i * 3 + 1], zTop)
-      }
-      bottom.push (bottom[0], bottom[1], bottom[2])
-      top.push(top[0], top[1], top[2])
-
-      var sides = []
-      for(var i = 0; i < bottom.length / 3; i++) {
-        var current = i * 3
-        var next = ((i + 1) * 3) % (bottom.length)
-        var side = []
-        side.push(bottom[current], bottom[current + 1], zBottom)
-        side.push(bottom[next], bottom[next + 1], zBottom)
-        side.push(bottom[next], bottom[next + 1], zTop)
-        side.push(bottom[current], bottom[current + 1], zTop)
-        side.push(bottom[current], bottom[current + 1], zBottom)
-        //console.log(side)
-        sides.push(side)
-      }
-
-      var vertices = []
-      vertices = vertices.concat(this.triangulate(bottom, []))
-      vertices = vertices.concat(this.triangulate(top, []))
-
-      for(var side of sides) {
-        vertices = vertices.concat(this.triangulate(side, []))
-      }
-
-      var lineVertices = []
-      lineVertices = lineVertices.concat(bottom)
-      lineVertices = lineVertices.concat(top)
-      for(var side of sides) {
-        lineVertices = lineVertices.concat(side)
-      }
-
-      //lineVertices.push(top)
-
-      var geom = new THREE.BufferGeometry();
-      geom.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
-      geom.computeBoundingSphere();
-
-      var lineGeom = new THREE.BufferGeometry();
-      lineGeom.addAttribute('position', new THREE.Float32BufferAttribute( lineVertices, 3 ) )
-      var line = new THREE.Line( lineGeom, this.lineMaterial );
-      //line.position.set(0, 0, cellGeoms[2] - (cell.geometry.properties.height * this.scale / 2));
-      cellgroup.add(line);
-
-      var mesh = new THREE.Mesh( geom, this.cellMaterial );
-      //mesh.position.set( 0, 0, cellGeoms[2] - (cell.geometry.properties.height * this.scale / 2));
-
-      cellgroup.add(mesh);
-
-      cellSpaces.add(cellgroup);
-      this.allGeometries[key] = cellgroup;
-      this.information[key] = cell;
-    }
-
-    var cbs = indoor.CellSpaceBoundary
-    for(const [key, value] of Object.entries(cbs)) {
-      var cb = value
-      var height = cb.geometry.properties.height
-
-      var cbgroup = new THREE.Group();
-      cbgroup.name = key;
-      var cbGeoms = this.cellBoundaryDirectory[key];
-
-      var zBottom = cbGeoms[2]
-      var zTop = cbGeoms[2] + (height * this.scale)
-
-      var lines = []
-      for(var i = 0; i < cbGeoms.length / 3; i++) {
-        var current = i * 3
-        var next = ((i + 1) * 3) % (cbGeoms.length)
-        var line = []
-        line.push(cbGeoms[current], cbGeoms[current + 1], zBottom)
-        line.push(cbGeoms[next], cbGeoms[next + 1], zBottom)
-        line.push(cbGeoms[next], cbGeoms[next + 1], zTop)
-        line.push(cbGeoms[current], cbGeoms[current + 1], zTop)
-        line.push(cbGeoms[current], cbGeoms[current + 1], zBottom)
-
-        lines.push(line)
-      }
-
-      vertices = []
-      for(var line of lines) {
-        vertices = vertices.concat(this.triangulate(line, []))
-      }
-
-      var geom = new THREE.BufferGeometry();
-      geom.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
-      geom.computeBoundingSphere();
-
-      var mesh = new THREE.Mesh( geom, this.cbMaterial );
-      //mesh.position.set( 0, 0, cellGeoms[2] - (cell.geometry.properties.height * this.scale / 2));
-
-      cbgroup.add(mesh);
-
-      cellBoundaries.add(cbgroup);
-      this.allGeometries[key] = cbgroup;
-      this.information[key] = cb;
-    }
-
-    var states = indoor.State;
-    var sgroup = new THREE.Group();
-    for(const [key, value] of Object.entries(states)) {
-      var box = new THREE.BoxBufferGeometry(0.03, 0.03, 0.03)
-      box.center()
-      var sGeoms = this.stateDirectory[key];
-      var mesh = new THREE.Mesh( box, this.stateMaterial )
-      mesh.position.set(sGeoms[0], sGeoms[1], sGeoms[2])
-      sgroup.add(mesh)
-    }
-
-    var transitions = indoor.Transition;
-    for(const [key, value] of Object.entries(transitions)) {
-      var lineGeom = this.transitionDirectory[key]
-
-      var geometry = new THREE.BufferGeometry();
-      var vertices = new Float32Array( lineGeom );
-      geometry.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
-
-      var line = new THREE.Line( geometry, this.transitionMaterial );
-      sgroup.add(line)
-    }
-    group.add(sgroup)
-
+	
     primalSpaceFeatures.add( cellSpaces );
     primalSpaceFeatures.add( cellBoundaries );
+	
     group.add(primalSpaceFeatures);
+	group.add(multiLayeredGraph);
     //group.rotation.x = - 90 * ( Math.PI / 180 );
-    group.rotateX(Math.PI / 2)
+	
+	var yM  = (new THREE.Matrix4()).identity();
+	yM.makeScale(-1, 1, 1);
+	group.applyMatrix(yM);
+	
+    group.rotateX(Math.PI / 2);
+		
 
     return group;
   }
