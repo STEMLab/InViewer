@@ -17,7 +17,7 @@ export default class IGMLHelper {
     this.cbMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, side: THREE.DoubleSide} );
     this.stateMaterial = new THREE.MeshLambertMaterial( {color: 0x0000ff} );
     this.transitionMaterial = new THREE.LineBasicMaterial( {color: 0x0000ff} );
-    this.lineMaterial = new THREE.LineBasicMaterial( {color: 0x000000} );
+    this.lineMaterial = new THREE.LineBasicMaterial( {color: 0x000000,linewidth: 100} );
   }
 
   parseCellSpaceGeometry(indoor) {
@@ -40,6 +40,7 @@ export default class IGMLHelper {
         this.cellDirectory[ cell.id ] = cellGeometry;
       }
     }
+	console.log(this.cellDirectory);
   }
 
   parseCellSpaceBoundaryGeometry(indoor) {
@@ -163,11 +164,25 @@ export default class IGMLHelper {
         cbGroup.add(mesh);
       } else {
         var linestring = cbGeom
-        geometry.addAttribute('position', new THREE.Float32BufferAttribute( linestring.points, 3 ) )
-        geometry.computeBoundingSphere();
+        //geometry.addAttribute('position', new THREE.Float32BufferAttribute( linestring.points, 3 ) )
+        //geometry.computeBoundingSphere();
 
-        var line = new THREE.Line( line, this.lineMaterial );
-        cbGroup.add(line);
+        //var line = new THREE.Line( line, this.lineMaterial );
+        //cbGroup.add(line);
+		
+		
+		
+		var lineGeom = cbGeom
+
+        var geometry = new THREE.BufferGeometry();
+        var vertices = new Float32Array( lineGeom );
+        geometry.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
+
+        var line = new THREE.Line( geometry, this.lineMaterial );
+        cbGroup.add(line)
+		
+		
+		
       }
       cellSpaceBoundary.add( cbGroup )
     }
