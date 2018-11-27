@@ -83,7 +83,11 @@ if (project.env === 'development') {
 }
 
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
+
+//app.use(bodyParser.json())
+app.use(bodyParser.json({limit: '1gb'}));
+app.use(bodyParser.raw({limit: '1gb' }));
+app.use(bodyParser.text({limit: '1gb'}));
 
 ///////////////////////////////////////////////////////////
 // Services setup

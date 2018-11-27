@@ -17,10 +17,11 @@ export default class IGMLHelper {
     this.cbMaterial = new THREE.MeshLambertMaterial( { color: 0xffffff, side: THREE.DoubleSide} );
     this.stateMaterial = new THREE.MeshLambertMaterial( {color: 0x0000ff} );
     this.transitionMaterial = new THREE.LineBasicMaterial( {color: 0x0000ff} );
-    this.lineMaterial = new THREE.LineBasicMaterial( {color: 0x000000} );
+    this.lineMaterial = new THREE.LineBasicMaterial( {color: 0x000000,linewidth: 100} );
   }
 
   parseCellSpaceGeometry(indoor) {
+	  console.log('hi');
     if(indoor.cells) {
       var cells = indoor.cells
       for(var cell of cells) {
@@ -39,6 +40,7 @@ export default class IGMLHelper {
         this.cellDirectory[ cell.id ] = cellGeometry;
       }
     }
+	console.log(this.cellDirectory);
   }
 
   parseCellSpaceBoundaryGeometry(indoor) {
@@ -162,11 +164,25 @@ export default class IGMLHelper {
         cbGroup.add(mesh);
       } else {
         var linestring = cbGeom
-        geometry.addAttribute('position', new THREE.Float32BufferAttribute( linestring.points, 3 ) )
-        geometry.computeBoundingSphere();
+        //geometry.addAttribute('position', new THREE.Float32BufferAttribute( linestring.points, 3 ) )
+        //geometry.computeBoundingSphere();
 
-        var line = new THREE.Line( line, this.lineMaterial );
-        cbGroup.add(line);
+        //var line = new THREE.Line( line, this.lineMaterial );
+        //cbGroup.add(line);
+		
+		
+		
+		var lineGeom = cbGeom
+
+        var geometry = new THREE.BufferGeometry();
+        var vertices = new Float32Array( lineGeom );
+        geometry.addAttribute('position', new THREE.Float32BufferAttribute( vertices, 3 ) )
+
+        var line = new THREE.Line( geometry, this.lineMaterial );
+        cbGroup.add(line)
+		
+		
+		
       }
       cellSpaceBoundary.add( cbGroup )
     }
@@ -181,8 +197,9 @@ export default class IGMLHelper {
 
       var ns = sp.nodes;
       for(var n of ns) {
-        var box = new THREE.BoxBufferGeometry(0.03, 0.03, 0.03)
-        box.center()
+        //var box = new THREE.BoxBufferGeometry(0.03, 0.03, 0.03)
+        var box = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2)
+		box.center()
         var coordinate = this.stateDirectory[n.id]
         var mesh = new THREE.Mesh( box, this.stateMaterial )
         mesh.position.set(coordinate[0], coordinate[1], coordinate[2])
@@ -218,12 +235,12 @@ export default class IGMLHelper {
 	group.applyMatrix(mS);
 	
 	var yM  = (new THREE.Matrix4()).identity();
-    yM.makeScale(-1, 1, 1);
+    yM.makeScale(1, -1, 1);
     group.applyMatrix(yM);
 	
 	group.rotateX(Math.PI);
+	group.rotateY(Math.PI);
 	
-	console.log(yM);
     return group;
   }
 
