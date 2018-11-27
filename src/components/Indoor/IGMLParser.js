@@ -48,7 +48,7 @@ export default class IGMLParser {
         }
       }
     }
-
+    
 	if( igmlContent.value.multiLayeredGraph !== undefined){
 		var mg = igmlContent.value.multiLayeredGraph.multiLayeredGraph;
 		var layers = mg.spaceLayers;
@@ -65,7 +65,6 @@ export default class IGMLParser {
 			}
 		  }
 		}
-	}
   }
 
   parseNodes(nodesArr, spaceLayer) {
