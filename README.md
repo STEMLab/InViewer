@@ -12,6 +12,7 @@ A Three.js-based viewer for visualizing OGC IndoorGML data
 
 - Node.js >= ^5.0.0
 - npm >= ^3.0.0
+- Python 2.7
 
 ## Quick Start
 
