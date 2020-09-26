@@ -23,6 +23,8 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@avatsaev/three-orbitcontrols-ts": "^0.1.5",
+    "@kibou/three-orbitcontrols-ts": "^0.2.8",
     "autobind-decorator": "^2.1.0",
     "autoprefixer": "^8.1.0",
     "axios": "^0.18.0",
@@ -57,6 +59,7 @@
     "socket.io-client": "^2.0.4",
     "superagent": "^3.8.2",
     "three": "^0.90.0",
+    "three-orbitcontrols-ts": "git+https://git@github.com/nicolaspanel/three-orbitcontrols-ts.git",
     "tween.js": "^16.6.0",
     "whatwg-fetch": "^2.0.3"
   },
